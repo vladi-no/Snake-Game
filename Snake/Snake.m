@@ -35,6 +35,7 @@
 - (void)dealloc
 {
     [bodyArray release];
+	[theFood release];
 	[super dealloc];
 }
 
@@ -94,16 +95,25 @@
 {
     SnakeBody *headBody = [self.bodyArray objectAtIndex:0];
     //touch itself,die   game over
+    for (NSUInteger i = 1; i < [self.bodyArray count]; i++) {
+        SnakeBody *body = [self.bodyArray objectAtIndex:i];
+        if (CGRectEqualToRect(headBody.bodyRect, body.bodyRect)) {
+            [self.delegate SnakeDidDie];
+            return;
+        }
+    }
     
     //touch wall,die     game over
     if (headBody.bodyRect.origin.x<0||headBody.bodyRect.origin.x>480||headBody.bodyRect.origin.y<0||headBody.bodyRect.origin.y>360) {
         [self.delegate SnakeDidDie];
+        return;
     }
 
     
     //eat food        length+1....       (later,maybe add score and raise speed)
     if (CGRectEqualToRect(headBody.bodyRect,self.theFood.foodRect)) {
         hasEaten = YES;
+        [self.delegate SnakeDidEatFood];
         [self initTheFood];
     }
 }

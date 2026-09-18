@@ -24,12 +24,18 @@
 
 - (void)dealloc
 {
+    [timer invalidate];
     [snake release];
 	[super dealloc];
 }
 
 - (void)gameInit
 {
+    [timer invalidate];
+    timer = nil;
+    score = 0;
+    gameIsOver = NO;
+
     //initialize the snake
     Snake *aSnake = [[Snake alloc] initSnake];
     aSnake.delegate = self;
@@ -56,11 +62,12 @@
 
 - (void)gameOver
 {
-    NSLog(@"gameOver");
+    gameIsOver = YES;
     if (timer) {
         [timer invalidate];
         timer = nil;
     }
+    [self setNeedsDisplay:YES];
 }
 
 - (void)drawRect:(NSRect)dirtyRect
@@ -76,6 +83,32 @@
     
     [[NSColor blackColor] set];
     NSRectFill(self.snake.theFood.foodRect);
+
+    NSDictionary *scoreAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
+                                    [NSFont boldSystemFontOfSize:14.0], NSFontAttributeName,
+                                    [NSColor blackColor], NSForegroundColorAttributeName, nil];
+    [[NSString stringWithFormat:@"Score: %ld", (long)score] drawAtPoint:NSMakePoint(10, 10)
+                                                        withAttributes:scoreAttributes];
+
+    if (gameIsOver) {
+        NSString *gameOverText = @"Game Over";
+        NSString *restartText = @"Press R to play again";
+        NSDictionary *gameOverAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
+                                           [NSFont boldSystemFontOfSize:28.0], NSFontAttributeName,
+                                           [NSColor redColor], NSForegroundColorAttributeName, nil];
+        NSDictionary *restartAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
+                                          [NSFont systemFontOfSize:16.0], NSFontAttributeName,
+                                          [NSColor blackColor], NSForegroundColorAttributeName, nil];
+        NSSize gameOverSize = [gameOverText sizeWithAttributes:gameOverAttributes];
+        NSSize restartSize = [restartText sizeWithAttributes:restartAttributes];
+        NSRect bounds = [self bounds];
+        [gameOverText drawAtPoint:NSMakePoint((NSWidth(bounds) - gameOverSize.width) / 2,
+                                          (NSHeight(bounds) - gameOverSize.height) / 2 - 12)
+                    withAttributes:gameOverAttributes];
+        [restartText drawAtPoint:NSMakePoint((NSWidth(bounds) - restartSize.width) / 2,
+                                         (NSHeight(bounds) - restartSize.height) / 2 + 24)
+                    withAttributes:restartAttributes];
+    }
 
 }
 
@@ -96,8 +129,11 @@
 { 
     // the key ADWS for change the direction of the snake
     NSString *chars = [event characters]; 
-    
-    
+    if ([chars isEqualToString:@"r"] && gameIsOver) {
+        [self gameInit];
+        return;
+    }
+
     if ([chars isEqualToString:@"s"]) {
         [self.snake didMoveToDirection:goDown];
     }
@@ -118,5 +154,10 @@
 - (void)SnakeDidDie
 {
     [self gameOver];
+}
+
+- (void)SnakeDidEatFood
+{
+    score += 10;
 }
 @end

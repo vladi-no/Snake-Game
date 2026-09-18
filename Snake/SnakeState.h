@@ -11,5 +11,6 @@
 @protocol SnakeState <NSObject>
 
 - (void)SnakeDidDie;
+- (void)SnakeDidEatFood;
 
 @end

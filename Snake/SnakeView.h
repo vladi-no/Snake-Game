@@ -14,6 +14,8 @@
 {
     Snake *snake;
     NSTimer *timer;
+    NSInteger score;
+    BOOL gameIsOver;
 }
 
 @property (nonatomic,retain) Snake *snake;
